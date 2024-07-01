@@ -1,6 +1,24 @@
 import random
 
 def generate_height_map(size, roughness):
+    """
+    Generate a terrain height map using the diamond-square algorithm.
+    
+    Args:
+    - size (int): Size of the height map grid (size x size).
+    - roughness (float): Roughness factor that determines the variability in height values.
+    
+    Returns:
+    - height_map (list of lists of floats): 2D grid representing the terrain height map.
+    
+    Description:
+    This function generates a height map by applying the diamond-square algorithm, also known as the
+    midpoint displacement algorithm. It starts by initializing the height map with random values. Then,
+    it iteratively performs diamond and square steps to compute new height values based on neighboring
+    points. The roughness parameter controls how much random variation is added to each point during
+    these steps. The algorithm continues to refine the height map until the desired level of detail
+    (controlled by the size parameter) is achieved.
+    """
     # Initialize the height map with random values
     height_map = [[random.random() for _ in range(size)] for _ in range(size)]
     
@@ -41,8 +59,3 @@ def generate_height_map(size, roughness):
         roughness /= 2
     
     return height_map
-
-
-
-To use this code, you can call the generate_height_map() function and pass in the desired size and roughness values:
-height_map = generate_height_map(256, 1.0)
