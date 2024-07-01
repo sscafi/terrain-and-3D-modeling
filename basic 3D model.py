@@ -20,13 +20,13 @@ ax.plot_surface(x, y, z)
 plt.show()
 
 
-This code assumes that you have elevation data for the world in a file called "elevation_data.txt". The elevation data should be in a matrix format, with each value representing the elevation at a particular point on the earth's surface.
+#This code assumes that you have elevation data for the world in a file called "elevation_data.txt". The elevation data should be in a matrix format, with each value representing the elevation at a particular point on the earth's surface.
 
-The code uses the numpy library to create X and Y coordinates based on the size of the elevation data matrix. It then uses the elevation data itself as the Z coordinate for each point in the 3D model.
+#The code uses the numpy library to create X and Y coordinates based on the size of the elevation data matrix. It then uses the elevation data itself as the Z coordinate for each point in the 3D model.
 
-Finally, the code creates a 3D plot using the matplotlib library and displays it using plt.show().
+#Finally, the code creates a 3D plot using the matplotlib library and displays it using plt.show().
 
-Note that this code generates a very basic 3D model of the world, and it does not include any features like buildings, trees, roads, or bodies of water. To create a more detailed 3D model of the world, you would need to incorporate additional data sources and processing techniques.
+#Note that this code generates a very basic 3D model of the world, and it does not include any features like buildings, trees, roads, or bodies of water. To create a more detailed 3D model of the world, you would need to incorporate additional data sources and processing techniques.
 
 
 
