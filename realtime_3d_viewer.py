@@ -34,13 +34,15 @@ class RealTime3DTerrainApp:
         
         # Initialize pygame and OpenGL
         self._init_pygame()
-        self._init_opengl()
         
-        # Initialize components
+        # Initialize components (after OpenGL context is created)
         self.camera = CameraController()
         self.renderer = OpenGLRenderer()
         self.simulation = RealtimeSimulation()
         self.gui = GUIControls(self)
+        
+        # Initialize OpenGL after context is ready
+        self._init_opengl()
         
         # Simulation state
         self.simulation_running = False
@@ -84,12 +86,6 @@ class RealTime3DTerrainApp:
         # Set clear color (sky blue)
         glClearColor(0.5, 0.8, 1.0, 1.0)
         
-        # Set up perspective projection
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective(45, self.width/self.height, 0.1, 1000.0)
-        glMatrixMode(GL_MODELVIEW)
-        
         # Enable lighting
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)
@@ -102,6 +98,27 @@ class RealTime3DTerrainApp:
         glLightfv(GL_LIGHT0, GL_POSITION, light_pos)
         glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient)
         glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse)
+        
+        # Set up projection matrix (we'll do this in render loop)
+        self.projection_matrix = self._create_projection_matrix()
+    
+    def _create_projection_matrix(self):
+        """Create projection matrix for perspective view."""
+        import math
+        fov = 45.0
+        aspect = self.width / self.height
+        near = 0.1
+        far = 1000.0
+        
+        # Create perspective projection matrix
+        f = 1.0 / math.tan(math.radians(fov) / 2.0)
+        matrix = [
+            f/aspect, 0, 0, 0,
+            0, f, 0, 0,
+            0, 0, (far+near)/(near-far), -1,
+            0, 0, (2*far*near)/(near-far), 0
+        ]
+        return matrix
     
     def start_simulation_thread(self):
         """Start the simulation thread."""
@@ -198,7 +215,13 @@ class RealTime3DTerrainApp:
         # Clear screen
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         
+        # Set up projection matrix
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluPerspective(45, self.width/self.height, 0.1, 1000.0)
+        
         # Set up camera view
+        glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         self.camera.apply_transform()
         

@@ -24,14 +24,14 @@ class GUIControls:
         self.root = None
         self.control_frame = None
         
-        # Parameter variables
-        self.rainfall_var = tk.DoubleVar(value=1.0)
-        self.evaporation_var = tk.DoubleVar(value=0.1)
-        self.erosion_var = tk.DoubleVar(value=0.01)
-        self.wind_var = tk.DoubleVar(value=0.0)
-        self.fire_var = tk.DoubleVar(value=0.3)
-        self.phase_var = tk.IntVar(value=1)
-        self.speed_var = tk.DoubleVar(value=1.0)
+        # Parameter variables (will be created after root window)
+        self.rainfall_var = None
+        self.evaporation_var = None
+        self.erosion_var = None
+        self.wind_var = None
+        self.fire_var = None
+        self.phase_var = None
+        self.speed_var = None
         
         # Statistics variables
         self.stats_vars = {}
@@ -49,6 +49,15 @@ class GUIControls:
         self.root.title("Terrain Simulation Controls")
         self.root.geometry("400x600")
         self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
+        
+        # Initialize parameter variables after root window is created
+        self.rainfall_var = tk.DoubleVar(value=1.0)
+        self.evaporation_var = tk.DoubleVar(value=0.1)
+        self.erosion_var = tk.DoubleVar(value=0.01)
+        self.wind_var = tk.DoubleVar(value=0.0)
+        self.fire_var = tk.DoubleVar(value=0.3)
+        self.phase_var = tk.IntVar(value=1)
+        self.speed_var = tk.DoubleVar(value=1.0)
         
         # Create main frame
         main_frame = ttk.Frame(self.root, padding="10")
