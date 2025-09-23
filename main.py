@@ -467,36 +467,91 @@ def main():
     
     args = parser.parse_args()
     
+    # Determine phases to run
+    if args.all_phases:
+        phases_to_run = ['1', '2', '3', '4', '5', '6']
+    else:
+        phases_to_run = args.phases
+    
+    print(f"Running phases: {phases_to_run}")
     print(f"Generating terrain with size={args.size}, roughness={args.roughness}, seed={args.seed}")
     
-    # Generate terrain
-    height_map = generate_height_map(args.size, args.roughness, args.seed)
+    # Initialize simulation results
+    water_sim = None
+    erosion_sim = None
+    disaster_sim = None
+    pathfinding_sim = None
+    data_sim = None
     
-    # Print terrain statistics
-    print(f"Terrain statistics:")
-    print(f"  Min elevation: {height_map.min():.3f}")
-    print(f"  Max elevation: {height_map.max():.3f}")
-    print(f"  Mean elevation: {height_map.mean():.3f}")
-    print(f"  Std deviation: {height_map.std():.3f}")
-    
-    # Export terrain if requested
-    if args.export:
-        export_terrain(height_map, args.output_dir)
-    
-    # Display 3D terrain visualization
-    if not args.no_display and not args.water_simulation:
-        title = f"Terrain (Size: {args.size}, Roughness: {args.roughness})"
-        if args.seed is not None:
-            title += f", Seed: {args.seed}"
+    # Phase 1: Terrain Generation
+    if '1' in phases_to_run:
+        print("\n" + "="*50)
+        print("PHASE 1: TERRAIN GENERATION")
+        print("="*50)
         
-        fig, ax = visualize_terrain(height_map, title)
-        plt.show()
-    
-    # Run water simulation if requested
-    if args.water_simulation:
-        water_sim = run_water_simulation(height_map, args)
+        # Generate terrain
+        height_map = generate_height_map(args.size, args.roughness, args.seed)
+        
+        # Print terrain statistics
+        print(f"Terrain statistics:")
+        print(f"  Min elevation: {height_map.min():.3f}")
+        print(f"  Max elevation: {height_map.max():.3f}")
+        print(f"  Mean elevation: {height_map.mean():.3f}")
+        print(f"  Std deviation: {height_map.std():.3f}")
+        
+        # Export terrain if requested
+        if args.export:
+            export_terrain(height_map, args.output_dir)
+        
+        # Display 3D terrain visualization
+        if not args.no_display and len(phases_to_run) == 1:
+            title = f"Terrain (Size: {args.size}, Roughness: {args.roughness})"
+            if args.seed is not None:
+                title += f", Seed: {args.seed}"
+            
+            fig, ax = visualize_terrain(height_map, title)
+            plt.show()
     else:
-        water_sim = None
+        # For phases 2-6, we need to generate terrain first
+        height_map = generate_height_map(args.size, args.roughness, args.seed)
+    
+    # Phase 2: Water Flow Simulation
+    if '2' in phases_to_run:
+        water_sim = run_water_simulation(height_map, args)
+    
+    # Phase 3: Erosion & Terrain Evolution
+    if '3' in phases_to_run:
+        erosion_sim = run_erosion_simulation(height_map, water_sim, args)
+    
+    # Phase 4: Disaster Simulations
+    if '4' in phases_to_run:
+        disaster_sim = run_disaster_simulation(height_map, water_sim, erosion_sim, args)
+    
+    # Phase 5: Pathfinding & Accessibility
+    if '5' in phases_to_run:
+        # Set default pathfinding coordinates if not provided
+        if args.pathfinding_start_x is None:
+            args.pathfinding_start_x = args.size // 4
+        if args.pathfinding_start_y is None:
+            args.pathfinding_start_y = args.size // 4
+        if args.pathfinding_goal_x is None:
+            args.pathfinding_goal_x = 3 * args.size // 4
+        if args.pathfinding_goal_y is None:
+            args.pathfinding_goal_y = 3 * args.size // 4
+            
+        pathfinding_sim = run_pathfinding_simulation(height_map, water_sim, disaster_sim, args)
+    
+    # Phase 6: Data-Driven Terrain
+    if '6' in phases_to_run:
+        data_sim, simulation_results = run_real_data_simulation(args)
+    
+    print("\n" + "="*50)
+    print("SIMULATION COMPLETE")
+    print("="*50)
+    print(f"Phases completed: {phases_to_run}")
+    if args.export:
+        print(f"All data exported to: {args.output_dir}/")
+    print("="*50)
 
 
 if __name__ == "__main__":
