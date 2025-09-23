@@ -192,7 +192,7 @@ class DataImportSimulation:
             raise ValueError(f"Dataset {dataset_name} not loaded")
         
         dataset = self.loaded_datasets[dataset_name]
-        terrain = dataset['preprocessed']['smoothed']
+        terrain = dataset['data']  # Use original terrain for simulation
         
         print(f"Running {simulation_type} simulation on {dataset_name}")
         
@@ -207,7 +207,7 @@ class DataImportSimulation:
             # Import water simulation
             from water_simulation import WaterSimulation
             
-            water_sim = WaterSimulation(terrain, **kwargs)
+            water_sim = WaterSimulation(terrain)
             water_sim.simulate_rainfall_event(duration=kwargs.get('duration', 50))
             water_sim.identify_rivers()
             stats = water_sim.calculate_watershed_stats()
@@ -219,7 +219,7 @@ class DataImportSimulation:
             # Import erosion simulation
             from erosion_simulation import ErosionSimulation
             
-            erosion_sim = ErosionSimulation(terrain, **kwargs)
+            erosion_sim = ErosionSimulation(terrain)
             erosion_sim.simulate_terrain_aging(cycles=kwargs.get('cycles', 10))
             
             results['erosion_simulation'] = erosion_sim
@@ -228,7 +228,7 @@ class DataImportSimulation:
             # Import disaster simulation
             from disaster_simulation import DisasterSimulation
             
-            disaster_sim = DisasterSimulation(terrain, **kwargs)
+            disaster_sim = DisasterSimulation(terrain)
             disaster_sim.simulate_flooding(**kwargs.get('flood_params', {}))
             disaster_sim.simulate_landslides(**kwargs.get('landslide_params', {}))
             disaster_sim.simulate_wildfire(**kwargs.get('fire_params', {}))
@@ -239,7 +239,7 @@ class DataImportSimulation:
             # Import pathfinding simulation
             from pathfinding import PathfindingSimulation
             
-            pathfinding_sim = PathfindingSimulation(terrain, **kwargs)
+            pathfinding_sim = PathfindingSimulation(terrain)
             
             # Generate random start and goal points
             start = (terrain.shape[0]//4, terrain.shape[1]//4)
