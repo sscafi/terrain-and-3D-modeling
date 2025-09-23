@@ -11,11 +11,11 @@ from mpl_toolkits.mplot3d import Axes3D
 import random
 import os
 from datetime import datetime
-from water_simulation import WaterSimulation
-from erosion_simulation import ErosionSimulation
-from disaster_simulation import DisasterSimulation
-from pathfinding import PathfindingSimulation
-from data_import import DataImportSimulation
+from src.water_simulation import WaterSimulation
+from src.erosion_simulation import ErosionSimulation
+from src.disaster_simulation import DisasterSimulation
+from src.pathfinding import PathfindingSimulation
+from src.data_import import DataImportSimulation
 
 
 def generate_height_map(size, roughness, seed=None):
