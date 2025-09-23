@@ -12,6 +12,10 @@ import random
 import os
 from datetime import datetime
 from water_simulation import WaterSimulation
+from erosion_simulation import ErosionSimulation
+from disaster_simulation import DisasterSimulation
+from pathfinding import PathfindingSimulation
+from data_import import DataImportSimulation
 
 
 def generate_height_map(size, roughness, seed=None):
@@ -189,9 +193,185 @@ def run_water_simulation(height_map, args):
     return water_sim
 
 
+def run_erosion_simulation(height_map, water_sim, args):
+    """
+    Run erosion simulation on the terrain.
+    
+    Args:
+        height_map (numpy.ndarray): Generated terrain
+        water_sim (WaterSimulation): Water simulation results
+        args: Command line arguments
+    """
+    print("\n" + "="*50)
+    print("PHASE 3: EROSION & TERRAIN EVOLUTION")
+    print("="*50)
+    
+    # Initialize erosion simulation
+    erosion_sim = ErosionSimulation(
+        terrain=height_map,
+        flow_accumulation=water_sim.flow_accumulation if water_sim else None,
+        water_surface=water_sim.water_surface if water_sim else None
+    )
+    
+    # Run terrain aging simulation
+    erosion_sim.simulate_terrain_aging(
+        cycles=args.erosion_cycles,
+        talus_angle=args.talus_angle
+    )
+    
+    # Export erosion data
+    if args.export:
+        erosion_sim.export_erosion_data(args.output_dir)
+    
+    # Display erosion visualization
+    if not args.no_display:
+        fig = erosion_sim.visualize_erosion()
+        plt.show()
+    
+    return erosion_sim
+
+
+def run_disaster_simulation(height_map, water_sim, erosion_sim, args):
+    """
+    Run disaster simulations on the terrain.
+    
+    Args:
+        height_map (numpy.ndarray): Generated terrain
+        water_sim (WaterSimulation): Water simulation results
+        erosion_sim (ErosionSimulation): Erosion simulation results
+        args: Command line arguments
+    """
+    print("\n" + "="*50)
+    print("PHASE 4: DISASTER SIMULATIONS")
+    print("="*50)
+    
+    # Initialize disaster simulation
+    disaster_sim = DisasterSimulation(
+        terrain=height_map,
+        flow_accumulation=water_sim.flow_accumulation if water_sim else None,
+        water_surface=water_sim.water_surface if water_sim else None
+    )
+    
+    # Run disaster simulations
+    disaster_sim.simulate_flooding(
+        sea_level_rise=args.sea_level_rise,
+        rainfall_intensity=args.flood_rainfall_intensity,
+        duration=args.flood_duration
+    )
+    
+    disaster_sim.simulate_landslides(
+        rainfall_trigger=args.landslide_rainfall_trigger,
+        slope_threshold=args.landslide_slope_threshold
+    )
+    
+    disaster_sim.simulate_wildfire(
+        ignition_points=args.fire_ignition_points,
+        wind_direction=args.wind_direction,
+        spread_rate=args.fire_spread_rate
+    )
+    
+    # Export disaster data
+    if args.export:
+        disaster_sim.export_disaster_data(args.output_dir)
+    
+    # Display disaster visualization
+    if not args.no_display:
+        fig = disaster_sim.visualize_disasters()
+        plt.show()
+    
+    return disaster_sim
+
+
+def run_pathfinding_simulation(height_map, water_sim, disaster_sim, args):
+    """
+    Run pathfinding simulation on the terrain.
+    
+    Args:
+        height_map (numpy.ndarray): Generated terrain
+        water_sim (WaterSimulation): Water simulation results
+        disaster_sim (DisasterSimulation): Disaster simulation results
+        args: Command line arguments
+    """
+    print("\n" + "="*50)
+    print("PHASE 5: PATHFINDING & ACCESSIBILITY")
+    print("="*50)
+    
+    # Initialize pathfinding simulation
+    pathfinding_sim = PathfindingSimulation(
+        terrain=height_map,
+        flow_accumulation=water_sim.flow_accumulation if water_sim else None,
+        water_surface=water_sim.water_surface if water_sim else None,
+        flood_map=disaster_sim.flood_map if disaster_sim else None,
+        landslide_map=disaster_sim.landslide_map if disaster_sim else None,
+        wildfire_map=disaster_sim.wildfire_map if disaster_sim else None
+    )
+    
+    # Generate start and goal points
+    start = (args.pathfinding_start_y, args.pathfinding_start_x)
+    goals = [(args.pathfinding_goal_y, args.pathfinding_goal_x)]
+    
+    # Find paths
+    paths = pathfinding_sim.find_multiple_paths(
+        start, goals,
+        algorithm=args.pathfinding_algorithm,
+        cost_type=args.pathfinding_cost_type
+    )
+    
+    # Export pathfinding data
+    if args.export:
+        pathfinding_sim.export_pathfinding_data(args.output_dir)
+    
+    # Display pathfinding visualization
+    if not args.no_display:
+        fig = pathfinding_sim.visualize_pathfinding(paths, args.pathfinding_cost_type)
+        plt.show()
+    
+    return pathfinding_sim
+
+
+def run_real_data_simulation(args):
+    """
+    Run simulations on real-world terrain data.
+    
+    Args:
+        args: Command line arguments
+    """
+    print("\n" + "="*50)
+    print("PHASE 6: DATA-DRIVEN TERRAIN")
+    print("="*50)
+    
+    # Initialize data import simulation
+    data_sim = DataImportSimulation(args.data_dir)
+    
+    # Load dataset
+    terrain = data_sim.load_dataset(args.real_dataset, args.real_dataset_region)
+    
+    # Preprocess terrain
+    preprocessed_terrain = data_sim.preprocess_terrain(terrain, args.real_dataset)
+    
+    # Run simulation on real data
+    simulation_results = data_sim.run_simulation_on_real_data(
+        args.real_dataset,
+        simulation_type=args.real_simulation_type,
+        duration=args.real_simulation_duration,
+        cycles=args.real_simulation_cycles
+    )
+    
+    # Export real data results
+    if args.export:
+        data_sim.export_real_data_results(args.real_dataset, simulation_results, args.output_dir)
+    
+    # Display real data visualization
+    if not args.no_display:
+        fig = data_sim.visualize_real_data_simulation(args.real_dataset, simulation_results)
+        plt.show()
+    
+    return data_sim, simulation_results
+
+
 def main():
     """Main application function."""
-    parser = argparse.ArgumentParser(description='Generate and visualize 3D terrain with water simulation')
+    parser = argparse.ArgumentParser(description='Complete terrain simulation system with all phases')
     
     # Terrain generation arguments
     parser.add_argument('--size', type=int, default=65, 
@@ -201,9 +381,14 @@ def main():
     parser.add_argument('--seed', type=int, default=None,
                        help='Random seed for reproducible results (default: random)')
     
-    # Water simulation arguments
-    parser.add_argument('--water-simulation', action='store_true',
-                       help='Run water flow simulation (Phase 2)')
+    # Phase selection
+    parser.add_argument('--phases', nargs='+', default=['1'], 
+                       choices=['1', '2', '3', '4', '5', '6'],
+                       help='Phases to run (default: 1)')
+    parser.add_argument('--all-phases', action='store_true',
+                       help='Run all phases sequentially')
+    
+    # Water simulation arguments (Phase 2)
     parser.add_argument('--rainfall-intensity', type=float, default=1.0,
                        help='Rainfall intensity for water simulation (default: 1.0)')
     parser.add_argument('--rainfall-duration', type=int, default=50,
@@ -215,9 +400,66 @@ def main():
     parser.add_argument('--river-threshold', type=float, default=None,
                        help='Flow accumulation threshold for river identification (default: 95th percentile)')
     
+    # Erosion simulation arguments (Phase 3)
+    parser.add_argument('--erosion-cycles', type=int, default=10,
+                       help='Number of erosion cycles (default: 10)')
+    parser.add_argument('--talus-angle', type=float, default=0.5,
+                       help='Critical slope angle for thermal erosion (default: 0.5)')
+    
+    # Disaster simulation arguments (Phase 4)
+    parser.add_argument('--sea-level-rise', type=float, default=0.1,
+                       help='Sea level rise for flooding simulation (default: 0.1)')
+    parser.add_argument('--flood-rainfall-intensity', type=float, default=2.0,
+                       help='Rainfall intensity for flooding (default: 2.0)')
+    parser.add_argument('--flood-duration', type=int, default=20,
+                       help='Duration of flooding simulation (default: 20)')
+    parser.add_argument('--landslide-rainfall-trigger', type=float, default=1.5,
+                       help='Rainfall threshold for landslide trigger (default: 1.5)')
+    parser.add_argument('--landslide-slope-threshold', type=float, default=0.8,
+                       help='Slope threshold for landslides (default: 0.8)')
+    parser.add_argument('--fire-ignition-points', nargs='+', type=int, default=None,
+                       help='Fire ignition points as x,y pairs (default: random)')
+    parser.add_argument('--wind-direction', type=float, default=0,
+                       help='Wind direction in degrees (default: 0)')
+    parser.add_argument('--fire-spread-rate', type=float, default=0.3,
+                       help='Fire spread rate (default: 0.3)')
+    
+    # Pathfinding arguments (Phase 5)
+    parser.add_argument('--pathfinding-start-x', type=int, default=None,
+                       help='Pathfinding start X coordinate (default: size//4)')
+    parser.add_argument('--pathfinding-start-y', type=int, default=None,
+                       help='Pathfinding start Y coordinate (default: size//4)')
+    parser.add_argument('--pathfinding-goal-x', type=int, default=None,
+                       help='Pathfinding goal X coordinate (default: 3*size//4)')
+    parser.add_argument('--pathfinding-goal-y', type=int, default=None,
+                       help='Pathfinding goal Y coordinate (default: 3*size//4)')
+    parser.add_argument('--pathfinding-algorithm', type=str, default='astar',
+                       choices=['astar', 'dijkstra'],
+                       help='Pathfinding algorithm (default: astar)')
+    parser.add_argument('--pathfinding-cost-type', type=str, default='comprehensive',
+                       choices=['distance', 'slope', 'water', 'disasters', 'comprehensive'],
+                       help='Pathfinding cost function (default: comprehensive)')
+    
+    # Real data arguments (Phase 6)
+    parser.add_argument('--real-dataset', type=str, default='srtm_sample',
+                       choices=['srtm_sample', 'usgs_sample'],
+                       help='Real dataset to use (default: srtm_sample)')
+    parser.add_argument('--real-dataset-region', type=str, default='mountainous',
+                       choices=['mountainous', 'coastal', 'desert'],
+                       help='Region type for real dataset (default: mountainous)')
+    parser.add_argument('--real-simulation-type', type=str, default='water',
+                       choices=['water', 'erosion', 'disasters', 'pathfinding'],
+                       help='Simulation type for real data (default: water)')
+    parser.add_argument('--real-simulation-duration', type=int, default=50,
+                       help='Duration for real data simulation (default: 50)')
+    parser.add_argument('--real-simulation-cycles', type=int, default=10,
+                       help='Cycles for real data simulation (default: 10)')
+    parser.add_argument('--data-dir', type=str, default='data',
+                       help='Directory for real data storage (default: data)')
+    
     # Output arguments
     parser.add_argument('--export', action='store_true',
-                       help='Export terrain and water simulation data to files')
+                       help='Export all simulation data to files')
     parser.add_argument('--no-display', action='store_true',
                        help='Skip displaying plots')
     parser.add_argument('--output-dir', type=str, default='output',
@@ -237,18 +479,24 @@ def main():
     print(f"  Mean elevation: {height_map.mean():.3f}")
     print(f"  Std deviation: {height_map.std():.3f}")
     
-    # Export if requested
+    # Export terrain if requested
     if args.export:
         export_terrain(height_map, args.output_dir)
     
-    # Display 3D visualization
-    if not args.no_display:
+    # Display 3D terrain visualization
+    if not args.no_display and not args.water_simulation:
         title = f"Terrain (Size: {args.size}, Roughness: {args.roughness})"
         if args.seed is not None:
             title += f", Seed: {args.seed}"
         
         fig, ax = visualize_terrain(height_map, title)
         plt.show()
+    
+    # Run water simulation if requested
+    if args.water_simulation:
+        water_sim = run_water_simulation(height_map, args)
+    else:
+        water_sim = None
 
 
 if __name__ == "__main__":
